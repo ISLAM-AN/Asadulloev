@@ -1,0 +1,53 @@
+name: Build Android APK from ZIP
+
+on:
+  workflow_dispatch: # Иҷоза медиҳад, ки бо як клик аз сайти GitHub корро сар кунӣ
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Download and Extract Project ZIP from Google Drive
+      run: |
+        echo "Файл аз Google Drive зеркашӣ шуда истодааст..."
+        
+        # Линки зеркашии мустақим аз Google Drive
+        FILE_ID="1CZutmVR9gsv5wQ5HmsB0WlYlEaaGFgkB"
+        
+        # Захира кардани файл ва гузаштани аз санҷиши файлҳои калон
+        wget --save-cookies cookies.txt 'https://docs.google.com/uc?export=download&id='${FILE_ID} -O- \
+             sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1/p' > uc.txt
+             
+        wget --load-cookies cookies.txt 'https://docs.google.com/uc?export=download&confirm='$(<uc.txt)'&id='${FILE_ID} -O project.zip
+        
+        echo "Файл аз фишурдагӣ берун шуда истодааст (Extract)..."
+        unzip -q project.zip -d extracted_project
+        
+        # Агар хоҳӣ файлҳои кушодашударо ба папкаи асосӣ кӯчонидан:
+        cp -r extracted_project/* .
+        
+        echo "Кор тамом шуд, сохтори папкаҳо омода аст!"
+
+    # Агар ин лоиҳаи Android (Gradle) бошад, фармонҳои сохтани APK дар ин ҷо идома меёбанд:
+    - name: Build with Gradle
+      run: |
+        chmod +x gradlew
+        ./gradlew assembleDebug
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug
+        path: app/build/outputs/apk/debug/app-debug.apk
