@@ -1,4 +1,4 @@
-name: Build Android APK from ZIP
+name: Test Download and Extract ZIP
 
 on:
   workflow_dispatch:
@@ -6,44 +6,26 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  test-zip:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up JDK
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-
-    - name: Download and Extract Project ZIP from Google Drive
+    - name: Download and Extract ZIP from Google Drive
       run: |
+        echo "1. Насб кардани gdown..."
         pip install gdown
+        
+        echo "2. Зеркашӣ кардани ZIP..."
         gdown 1CZutmVR9gsv5wQ5HmsB0WlYlEaaGFgkB -O project.zip
         
-        # Unzip кардани файл
+        echo "3. Распаковка (Unzip) кардани файл..."
         unzip -q project.zip -d extracted_project
         
-        # Агар файлҳо дар дохили папкаи иловагӣ бошанд, ба папкаи асосӣ мекӯчонем
-        if [ -f extracted_project/gradlew ]; then
-          cp -r extracted_project/* .
-        else
-          cp -r extracted_project/*/* . 2>/dev/null || cp -r extracted_project/* .
-        fi
-        
-        # Санҷиши мавҷудияти файлҳо
+        echo "4. Рӯйхати файлҳо дар папкаи асосӣ:"
         ls -la
-
-    - name: Build with Gradle
-      run: |
-        chmod +x gradlew
-        ./gradlew assembleDebug
-
-    - name: Upload APK artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-debug
-        path: app/build/outputs/apk/debug/app-debug.apk
+        
+        echo "5. Рӯйхати файлҳо дар дохили extracted_project:"
+        ls -la extracted_project
