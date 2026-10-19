@@ -21,20 +21,21 @@ jobs:
 
     - name: Download and Extract Project ZIP from Google Drive
       run: |
-        echo "Насб кардани gdown барои зеркашӣ аз Google Drive..."
         pip install gdown
-        
-        echo "Файл аз Google Drive зеркашӣ шуда истодааст..."
-        # Зеркашӣ бо истифода аз ID-и файли Google Drive
         gdown 1CZutmVR9gsv5wQ5HmsB0WlYlEaaGFgkB -O project.zip
         
-        echo "Файл аз фишурдагӣ берун шуда истодааст (Extract)..."
+        # Unzip кардани файл
         unzip -q project.zip -d extracted_project
         
-        # Кӯчонидани файлҳо ба папкаи асосӣ
-        cp -r extracted_project/* .
+        # Агар файлҳо дар дохили папкаи иловагӣ бошанд, ба папкаи асосӣ мекӯчонем
+        if [ -f extracted_project/gradlew ]; then
+          cp -r extracted_project/* .
+        else
+          cp -r extracted_project/*/* . 2>/dev/null || cp -r extracted_project/* .
+        fi
         
-        echo "Сохтори папкаҳо бомуваффақият барқарор шуд!"
+        # Санҷиши мавҷудияти файлҳо
+        ls -la
 
     - name: Build with Gradle
       run: |
